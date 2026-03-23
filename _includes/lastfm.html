@@ -74,15 +74,14 @@
                 
                 if (track["@attr"] && track["@attr"].nowplaying === "true") {
                     statusEl.innerHTML = '<i class="fa fa-music" style="color: #1ed760;"></i> NOW PLAYING';
+                } else if (track.date && track.date.uts) {
+                    const timeString = timeAgo(track.date.uts);
+                    statusEl.innerHTML = `<i class="fa fa-history"></i> ${timeString}`;
                 } else {
                     statusEl.innerHTML = '<i class="fa fa-history"></i> RECENTLY PLAYED';
                 }
 
                 document.getElementById("lastfm-link").href = `https://www.last.fm/user/JoelJarcor`;
-
-                // widget.addEventListener("mouseenter", () => widget.style.boxShadow = "4px 4px rgba(0,0,0,0.8)");
-                // widget.addEventListener("mouseleave", () => widget.style.boxShadow = "4px 4px rgba(0,0,0,0.3)");
-
             })
             .catch(err => {
                 statusEl.innerText = "OFFLINE";
