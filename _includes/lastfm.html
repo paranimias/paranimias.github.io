@@ -19,6 +19,9 @@
         background-position: center;
         transition: transform 0.3s ease;
     ">
+        <div onclick="updateLastFm()" style="position: absolute; top: 8px; right: 8px; z-index: 10; cursor: pointer; opacity: 0.6;" title="Refresh">
+            <i class="fa fa-refresh" id="refresh-icon"></i>
+        </div>
         <a id="lastfm-link" href="#" target="_blank" style="
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -46,61 +49,56 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const username = "JoelJarcor";
-        const endpoint = `https://lastfm-last-played.biancarosa.com.br/${username}/latest-song`;
+    const VERCEL_URL = "https://lastfm-proxy.vercel.app/api/now-playing";
 
-        fetch(endpoint)
+    function updateLastFm() {
+        const statusEl = document.getElementById("lastfm-status");
+        const trackEl = document.getElementById("lastfm-track");
+        const artistEl = document.getElementById("lastfm-artist");
+        const widget = document.getElementById("lastfm-widget");
+
+        statusEl.innerText = "UPDATING...";
+
+        // Usamos Vercel para sacar la información
+        fetch(VERCEL_URL)
             .then(response => response.json())
             .then(data => {
-                if (data && data.track) {
-                    const track = data.track;
-                    const artistName = track.artist["#text"];
-                    const trackName = track.name;
-                    const albumArt = track.image.find(img => img.size === "extralarge")["#text"] || track.image[0]["#text"];
-                    const trackUrl = track.url;
+                const track = data.recenttracks.track[0];
+                const trackName = track.name;
+                const artistName = track.artist["#text"];
+                const albumArt = track.image.find(img => img.size === "extralarge")["#text"];
 
-                    let statusHtml = "";
-                    if (track["@attr"] && track["@attr"].nowplaying === "true") {
-                        statusHtml = '<i class="fa fa-music" style="margin-right: 5px; color: #1ed760;"></i> NOW PLAYING';
-                    } else if (track.date && track.date.uts) {
-                        const seconds = Math.floor((Date.now() / 1000) - parseInt(track.date.uts));
-                        let interval = seconds / 31536000;
-                        let timeString = "";
-                        if (interval >= 1) timeString = Math.floor(interval) + "y ago";
-                        else if ((interval = seconds / 2592000) >= 1) timeString = Math.floor(interval) + "mo ago";
-                        else if ((interval = seconds / 86400) >= 1) timeString = Math.floor(interval) + "d ago";
-                        else if ((interval = seconds / 3600) >= 1) timeString = Math.floor(interval) + "h ago";
-                        else if ((interval = seconds / 60) >= 1) timeString = Math.floor(interval) + "m ago";
-                        else timeString = "just now";
-                        
-                        statusHtml = '<i class="fa fa-history" style="margin-right: 5px;"></i> PLAYED ' + timeString;
-                    } else {
-                        statusHtml = '<i class="fa fa-music" style="margin-right: 5px;"></i> LATEST TRACK';
-                    }
-
-                    document.getElementById("lastfm-track").innerText = trackName;
-                    document.getElementById("lastfm-artist").innerText = artistName;
-                    document.getElementById("lastfm-status").innerHTML = statusHtml;
-
-                    if (albumArt) {
-                        document.getElementById("lastfm-widget").style.backgroundImage = `url(${albumArt})`;
-                    }
-
-                    // Link to user profile instead of track URL
-                    // document.getElementById("lastfm-link").href = `https://www.last.fm/user/${username}`;
-                    document.getElementById("lastfm-link").href = `https://www.last.fm/user/JoelJarcor`;
-
-                    // Simple hover effect
-                    const widget = document.getElementById("lastfm-widget");
-                    widget.addEventListener("mouseenter", () => widget.style.boxShadow = "4px 4px rgba(0,0,0,0.8)");
-                    widget.addEventListener("mouseleave", () => widget.style.boxShadow = "4px 4px rgba(0,0,0,0.3)");
+                trackEl.innerText = trackName;
+                artistEl.innerText = artistName;
+                if (albumArt) widget.style.backgroundImage = `url(${albumArt})`;
+                
+                if (track["@attr"] && track["@attr"].nowplaying === "true") {
+                    statusEl.innerHTML = '<i class="fa fa-music" style="color: #1ed760;"></i> NOW PLAYING';
+                } else {
+                    statusEl.innerHTML = '<i class="fa fa-history"></i> RECENTLY PLAYED';
                 }
             })
-            .catch(error => {
-                document.getElementById("lastfm-status").innerText = "OFFLINE";
-                document.getElementById("lastfm-track").innerText = "Unable to load track";
-                console.error("Error fetching Last.fm data:", error);
+            .catch(err => {
+                statusEl.innerText = "OFFLINE";
+                console.error(err);
             });
-    });
+    }
+
+    function timeAgo(uts) {
+        const seconds = Math.floor((Date.now() / 1000) - uts);
+        if (seconds < 60) return "JUST NOW";
+        const intervals = {
+            y: 31536000, mo: 2592000, d: 86400, h: 3600, m: 60
+        };
+        for (let key in intervals) {
+            const interval = Math.floor(seconds / intervals[key]);
+            if (interval >= 1) return `PLAYED ${interval}${key} AGO`;
+        }
+        return "RECENTLY PLAYED";
+    }
+
+    document.addEventListener("DOMContentLoaded", updateLastFm);
+    
+    // Actualizar cada 2 minutos
+    setInterval(updateLastFm, 120000);
 </script>
