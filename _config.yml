@@ -1,7 +1,7 @@
 # Site settings
 title: daedalus
 SEOTitle: Daedalus
-header-img: img/cat-home-bg.png
+header-img: img/cat-home-bg.webp
 header-img-credit: "Henriëtte Ronner-Knip"
 header-img-credit-href: "https://artvee.com/dl/the-cat-at-play/"
 email: "joeljarcor@gmail.com"
@@ -76,7 +76,7 @@ ga_domain: ""
 # Sidebar settings
 sidebar: true # whether or not using Sidebar.
 sidebar-about-description: "Computer Scientist<br/>Linux and Vim enthusiast"
-sidebar-avatar: "/img/paranimias.jpg"
+sidebar-avatar: "/img/paranimias.webp"
 
 # Featured Tags
 featured-tags: true # whether or not using Feature-Tags
@@ -87,7 +87,7 @@ chrome-tab-theme-color: "#000000"
 service-worker: true
 
 # MathJax rendering for layout:page (e.g. post preview)
-page-mathjax: true
+page-mathjax: false
 
 # Friends
 friends:
